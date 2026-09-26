@@ -1,46 +1,130 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
-
-    <title>Dashboard - User Data Handler</title>
-    <style>
-        body {font-family: Arial; padding: 40px;}
-        button {padding: 10px 20px; background: #db4437; color: white; border-radius: 6px; cursor: pointer;}
-        </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard - User Data Handler</title>
+  <style>
+    body{font-family:Arial,sans-serif;max-width:1000px;margin:0 auto;padding:24px;background:#f5f7fb;color:#202124}
+    .top,.card{background:#fff;border-radius:12px;padding:20px;margin-bottom:18px;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+    .top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+    label{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
+    input{width:100%;box-sizing:border-box;padding:10px;border:1px solid #d0d4da;border-radius:7px}
+    button{border:0;border-radius:7px;padding:10px 16px;cursor:pointer;background:#4285f4;color:#fff}
+    button.secondary{background:#5f6368}.actions{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+    table{width:100%;border-collapse:collapse;margin-top:14px}th,td{text-align:left;padding:10px;border-bottom:1px solid #eee}th{background:#f8f9fa}
+    #msg{min-height:20px}.error{color:#b3261e}.success{color:#137333}.muted{color:#5f6368}
+  </style>
 </head>
 <body>
-    <h1>Welcome to User Data Handler </h1>
-    <p> Logged in as: <span id="user-email"></span></p>
-    <button id="logout">Logout</button>
+  <section class="top">
+    <div><h1>User Data Handler</h1><p>Logged in as: <strong id="user-email"></strong></p></div>
+    <button id="logout" class="secondary" type="button">Logout</button>
+  </section>
 
-    <script type="module">
-         import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-         import {getAuth, onAuthStateChanged, signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  <section class="card">
+    <h2>Add employee</h2>
+    <form id="employee-form">
+      <div class="grid">
+        <div><label for="name">Name</label><input id="name" required maxlength="100"></div>
+        <div><label for="employee_id">Employee ID</label><input id="employee_id" required maxlength="50"></div>
+        <div><label for="department">Department</label><input id="department" required maxlength="100"></div>
+        <div><label for="salary">Salary</label><input id="salary" required inputmode="decimal" maxlength="30"></div>
+      </div>
+      <div class="actions"><button id="save-btn" type="submit">Save employee</button></div>
+    </form>
+    <p id="msg" role="alert"></p>
+  </section>
 
-         // Your web app's Firebase configuration
-         const firebaseConfig = {
-            apiKey: "AIzaSyAqMTkqnv7PbgMLFC1Dsr6xUC5F4Q5_cwk",
-            authDomain: "user-data-handler.firebaseapp.com",
-            projectId: "user-data-handler",
-            storageBucket: "user-data-handler.firebasestorage.app",
-            messagingSenderId: "86059970806",
-            appId: "1:86059970806:web:de794abb0b5cded13b3cd7"
-            };
+  <section class="card">
+    <h2>Employee records</h2>
+    <p class="muted">Records are stored in Firebase Firestore and are restricted to authenticated users by the recommended security rules.</p>
+    <div id="records">Loading...</div>
+  </section>
 
-// Initialize Firebase
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-         const app = initializeApp(firebaseConfig);
-         const auth = getAuth(app);
+    const firebaseConfig = {
+      apiKey: "AIzaSyAqMTkqnv7PbgMLFC1Dsr6xUC5F4Q5_cwk",
+      authDomain: "user-data-handler.firebaseapp.com",
+      projectId: "user-data-handler",
+      storageBucket: "user-data-handler.firebasestorage.app",
+      messagingSenderId: "86059970806",
+      appId: "1:86059970806:web:de794abb0b5cded13b3cd7"
+    };
 
-         onAuthStateChanged(auth, (user) => {
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const form = document.getElementById('employee-form');
+    const msg = document.getElementById('msg');
+    const records = document.getElementById('records');
+    let unsubscribeRecords = null;
 
-            if (user) {
-                document.getElementById("user-email").innerText = user.email;
-                    } else {
-                        window.location.href = "index.html";
-                }
-            });
+    const showMessage = (text, ok=false) => {
+      msg.textContent = text;
+      msg.className = ok ? 'success' : 'error';
+    };
 
-            document.getElementById("logout").onclick = () => signOut(auth);
-    </script>
+    onAuthStateChanged(auth, (user) => {
+      if (!user) { window.location.href = 'index.html'; return; }
+      document.getElementById('user-email').textContent = user.email || 'Authenticated user';
+
+      const employeeQuery = query(collection(db, 'employees'), orderBy('createdAt', 'desc'));
+      unsubscribeRecords?.();
+      unsubscribeRecords = onSnapshot(employeeQuery, (snapshot) => {
+        if (snapshot.empty) { records.innerHTML = '<p class="muted">No employee records yet.</p>'; return; }
+        const table = document.createElement('table');
+        table.innerHTML = '<thead><tr><th>Name</th><th>Employee ID</th><th>Department</th><th>Salary</th><th>Action</th></tr></thead>';
+        const tbody = document.createElement('tbody');
+        snapshot.forEach((item) => {
+          const data = item.data();
+          const tr = document.createElement('tr');
+          for (const key of ['name','employee_id','department','salary']) {
+            const td = document.createElement('td');
+            td.textContent = data[key] ?? '';
+            tr.appendChild(td);
+          }
+          const action = document.createElement('td');
+          const del = document.createElement('button');
+          del.textContent = 'Delete'; del.className = 'secondary';
+          del.onclick = async () => {
+            if (!confirm('Delete this employee record?')) return;
+            try { await deleteDoc(doc(db, 'employees', item.id)); showMessage('Record deleted.', true); }
+            catch (e) { showMessage(e.message); }
+          };
+          action.appendChild(del); tr.appendChild(action); tbody.appendChild(tr);
+        });
+        table.appendChild(tbody); records.replaceChildren(table);
+      }, (error) => showMessage('Could not load records: ' + error.message));
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const user = auth.currentUser;
+      if (!user) return;
+      const data = {
+        name: document.getElementById('name').value.trim(),
+        employee_id: document.getElementById('employee_id').value.trim(),
+        department: document.getElementById('department').value.trim(),
+        salary: document.getElementById('salary').value.trim()
+      };
+      if (Object.values(data).some(v => !v)) { showMessage('All fields are required.'); return; }
+      const button = document.getElementById('save-btn'); button.disabled = true;
+      try {
+        await addDoc(collection(db, 'employees'), { ...data, ownerUid: user.uid, createdAt: serverTimestamp() });
+        form.reset(); showMessage('Employee saved successfully.', true);
+      } catch (e) { showMessage('Could not save record: ' + e.message); }
+      finally { button.disabled = false; }
+    });
+
+    document.getElementById('logout').onclick = async () => {
+      try { await signOut(auth); } catch (e) { showMessage(e.message); }
+    };
+  </script>
 </body>
-</html> 
+</html>

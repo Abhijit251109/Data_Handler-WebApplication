@@ -17,8 +17,10 @@
 <body>
   <div class="box">
     <h2 id="form-title">Login</h2>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="Email" autocomplete="email">
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Password" autocomplete="current-password" minlength="6">
     <button id="action-btn">Login</button>
     <p id="msg"></p>
     <div class="toggle" id="toggle">Need an account? Sign up</div>
@@ -64,10 +66,20 @@
 
     // Handle Login or Sign Up
     btn.onclick = async () => {
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       msg.innerText = '';
 
+      if (!email || !password) {
+        msg.innerText = 'Please enter both email and password.';
+        return;
+      }
+      if (password.length < 6) {
+        msg.innerText = 'Password must be at least 6 characters.';
+        return;
+      }
+
+      btn.disabled = true;
       try {
         if (isLogin) {
           await signInWithEmailAndPassword(auth, email, password);
@@ -76,7 +88,16 @@
         }
         // onAuthStateChanged will redirect
       } catch (error) {
-        msg.innerText = error.message.replace('Firebase: ', '');
+        const code = error?.code || '';
+        const messages = {
+          'auth/invalid-credential': 'Invalid email or password.',
+          'auth/email-already-in-use': 'An account with this email already exists.',
+          'auth/invalid-email': 'Please enter a valid email address.',
+          'auth/weak-password': 'Password must be at least 6 characters.'
+        };
+        msg.innerText = messages[code] || error.message.replace('Firebase: ', '');
+      } finally {
+        btn.disabled = false;
       }
     };
   </script>
