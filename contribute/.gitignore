@@ -1,0 +1,7 @@
+# User-submitted contribution requests are runtime data and may contain personal information.
+contributions.json
+*.log
+*.tmp
+
+# Keep this directory present in a fresh clone.
+!.gitkeep

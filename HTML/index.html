@@ -1,17 +1,43 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Login - User Data Handler</title>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login - User Data Handler</title>
   <style>
-    body { font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f5f5f5; margin: 0; }
-    .box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 300px; }
+    body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f5f5f5; margin: 0; }
+    .box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: min(300px, calc(100% - 48px)); }
     h2 { margin-top: 0; text-align: center; }
+    label { display: block; margin-top: 8px; font-size: 14px; }
     input { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px; }
     button { width: 100%; padding: 12px; margin: 8px 0; background: #4285f4; color: white; border: none; border-radius: 6px; cursor: pointer; }
-    button:hover { background: #357ae8; }
-    #msg { text-align: center; color: red; font-size: 14px; min-height: 20px; }
-    .toggle { text-align: center; margin-top: 15px; font-size: 14px; color: #4285f4; cursor: pointer; }
+    button:hover:not(:disabled) { background: #357ae8; }
+    button:disabled { opacity: 0.65; cursor: wait; }
+    .secondary { background: #eef3ff; color: #2458b8; }
+    .secondary:hover:not(:disabled) { background: #e1eaff; }
+    #msg { text-align: center; color: #c62828; font-size: 14px; min-height: 20px; line-height: 1.4; }
+    #msg.success { color: #2e7d32; }
+    .toggle, .forgot { text-align: center; margin-top: 15px; font-size: 14px; color: #4285f4; cursor: pointer; }
+    .forgot { margin-top: 4px; }
+    .toggle:hover, .forgot:hover { text-decoration: underline; }
+    .hint { margin-top: 18px; font-size: 12px; color: #666; text-align: center; line-height: 1.4; }
+    .link-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+    .contact-link{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:7px;background:#f1f3f4;color:#1a73e8;text-decoration:none;font-size:13px;font-weight:600}
+    .contact-link:hover{background:#e8eaed;text-decoration:none}
+    .utility-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+    .utility-btn{border:0;border-radius:7px;padding:10px 14px;cursor:pointer;background:#f1f3f4;color:#174ea6;font-weight:600}
+    .utility-btn:hover{background:#e8eaed}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(32,33,36,.55);display:none;align-items:center;justify-content:center;padding:18px;z-index:20}
+    .modal-backdrop.open{display:flex}
+    .modal{background:#fff;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.25);width:min(560px,100%);padding:22px;max-height:90vh;overflow:auto}
+    .modal h3{margin:0 0 8px}.modal p{color:#5f6368;font-size:13px;line-height:1.45}
+    .modal label{display:block;margin:12px 0 5px;font-size:13px;font-weight:600}
+    .modal input,.modal textarea,.modal select{width:100%;box-sizing:border-box;padding:10px;border:1px solid #d0d4da;border-radius:7px;font:inherit}
+    .modal textarea{min-height:130px;resize:vertical}
+    .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+    .modal-actions button{padding:10px 15px}.modal .cancel{background:#5f6368}
+    .modal-status{min-height:18px;font-size:13px;margin-top:8px}
+
   </style>
 </head>
 <body>
@@ -21,17 +47,73 @@
     <input type="email" id="email" placeholder="Email" autocomplete="email">
     <label for="password">Password</label>
     <input type="password" id="password" placeholder="Password" autocomplete="current-password" minlength="6">
-    <button id="action-btn">Login</button>
-    <p id="msg"></p>
+    <button id="action-btn" type="button">Login</button>
+    <button id="reset-btn" type="button" class="secondary">Forgot password?</button>
+    <p id="msg" role="status" aria-live="polite"></p>
     <div class="toggle" id="toggle">Need an account? Sign up</div>
+    <div class="hint">Authentication project: <strong>user-data-handler</strong><br>Your saved files are available again on any device after you sign in.</div>
+
+  <div class="utility-actions" aria-label="Project links">
+    <button type="button" class="utility-btn" data-open-feedback>💬 Feedback</button>
+    <button type="button" class="utility-btn" data-open-contribute>🤝 Contribute</button>
+  </div>
+  <div class="link-row">
+    <a class="contact-link" href="https://github.com/Abhijit251109/Data_Handler-WebApplication" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <a class="contact-link" href="mailto:abhijitschool036@gmail.com">Email</a>
   </div>
 
-  <script type="module">
-    // Import Firebase SDKs
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  <div class="modal-backdrop" id="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedback-title">
+    <div class="modal">
+      <h3 id="feedback-title">Send feedback</h3>
+      <p>Your feedback is stored by the app in <code>./feedback/feedback.txt</code>.</p>
+      <form data-form="feedback">
+        <label for="feedback-name">Name (optional)</label>
+        <input id="feedback-name" name="name" maxlength="120" autocomplete="name" placeholder="Your name">
+        <label for="feedback-email">Email (optional)</label>
+        <input id="feedback-email" name="email" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com">
+        <label for="feedback-message">Feedback</label>
+        <textarea id="feedback-message" name="message" maxlength="5000" required placeholder="Tell us what you think..."></textarea>
+        <div class="modal-status" data-status></div>
+        <div class="modal-actions"><button type="button" class="cancel" data-close-modal>Cancel</button><button type="submit">Send feedback</button></div>
+      </form>
+    </div>
+  </div>
 
-    // Firebase configuration
+  <div class="modal-backdrop" id="contribute-modal" role="dialog" aria-modal="true" aria-labelledby="contribute-title">
+    <div class="modal">
+      <h3 id="contribute-title">Contribute to the project</h3>
+      <p>Contribution requests are stored in <code>./contribute/contributions.json</code> for review.</p>
+      <form data-form="contribute">
+        <label for="contribute-name">Name (optional)</label>
+        <input id="contribute-name" name="name" maxlength="120" autocomplete="name" placeholder="Your name">
+        <label for="contribute-email">Email (optional)</label>
+        <input id="contribute-email" name="email" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com">
+        <label for="contribute-github">GitHub profile/repository (optional)</label>
+        <input id="contribute-github" name="github" maxlength="500" placeholder="https://github.com/your-name">
+        <label for="contribute-type">Contribution type</label>
+        <select id="contribute-type" name="type">
+          <option>Code</option><option>Documentation</option><option>Testing / Bug report</option><option>UI / Design</option><option>Idea / Feature</option><option>Other</option>
+        </select>
+        <label for="contribute-message">What would you like to contribute?</label>
+        <textarea id="contribute-message" name="message" maxlength="5000" required placeholder="Describe your contribution..."></textarea>
+        <div class="modal-status" data-status></div>
+        <div class="modal-actions"><button type="button" class="cancel" data-close-modal>Cancel</button><button type="submit">Submit contribution</button></div>
+      </form>
+    </div>
+  </div>
+  </div>
+
+  <script src="app-config.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      sendPasswordResetEmail,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyAqMTkqnv7PbgMLFC1Dsr6xUC5F4Q5_cwk",
       authDomain: "user-data-handler.firebaseapp.com",
@@ -45,37 +127,152 @@
     const auth = getAuth(app);
 
     let isLogin = true;
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
     const title = document.getElementById('form-title');
     const btn = document.getElementById('action-btn');
+    const resetBtn = document.getElementById('reset-btn');
     const toggle = document.getElementById('toggle');
     const msg = document.getElementById('msg');
 
-    // If already logged in, go to dashboard
+    function showMessage(text, success = false) {
+      msg.innerText = text;
+      msg.classList.toggle('success', success);
+    }
+
+    function getEmail() {
+      return emailInput.value.trim().toLowerCase();
+    }
+
+    function friendlyAuthError(error) {
+      const code = error?.code || '';
+      const messages = {
+        'auth/invalid-credential': 'Invalid email or password. If you just reset it, make sure the reset was completed for this same email in the user-data-handler Firebase project.',
+        'auth/wrong-password': 'Incorrect password. Use “Forgot password?” to reset it.',
+        'auth/user-not-found': 'No account was found for this email.',
+        'auth/user-disabled': 'This account has been disabled in Firebase Authentication.',
+        'auth/invalid-email': 'Please enter a valid email address.',
+        'auth/email-already-in-use': 'An account with this email already exists. Switch to Login.',
+        'auth/weak-password': 'Password must be at least 6 characters.',
+        'auth/operation-not-allowed': 'Email/password sign-in is disabled in the Firebase project. Enable it under Authentication → Sign-in method.',
+        'auth/too-many-requests': 'Too many failed attempts. Wait a little and try again.',
+        'auth/network-request-failed': 'Network request failed. Check your internet connection and try again.',
+        'auth/invalid-api-key': 'The Firebase API key is invalid. Check the Firebase web app configuration.',
+        'auth/api-key-not-valid': 'The Firebase API key is not valid for this project.',
+        'auth/app-not-authorized': 'This website is not authorized for the Firebase project. Add its domain under Authentication → Settings → Authorized domains.'
+      };
+      return messages[code] || `Firebase error (${code || 'unknown'}): ${error?.message || 'Unknown authentication error.'}`;
+    }
+
     onAuthStateChanged(auth, (user) => {
+      window.__currentUserEmail = user?.email || '';
       if (user) window.location.href = 'dashboard.html';
     });
 
-    // Toggle Login / Sign Up
+
+    // Feedback and contribution forms use the bundled Python API. This keeps the
+    // Firebase authentication/Firestore flow separate from local project submissions.
+    const currentUserEmail = () => window.__currentUserEmail || '';
+
+    function openModal(id, formKey) {
+      const modal = document.getElementById(id);
+      modal.classList.add('open');
+      const form = modal.querySelector('form');
+      const status = form.querySelector('[data-status]');
+      status.textContent = '';
+      if (formKey === 'feedback') {
+        form.querySelector('[name="email"]').value = currentUserEmail();
+        form.querySelector('[name="message"]').focus();
+      } else {
+        form.querySelector('[name="email"]').value = currentUserEmail();
+        form.querySelector('[name="message"]').focus();
+      }
+    }
+    function closeModal(modal) { modal.classList.remove('open'); }
+
+    document.querySelectorAll('[data-open-feedback]').forEach((button) => button.addEventListener('click', () => openModal('feedback-modal', 'feedback')));
+    document.querySelectorAll('[data-open-contribute]').forEach((button) => button.addEventListener('click', () => openModal('contribute-modal', 'contribute')));
+    document.querySelectorAll('[data-close-modal]').forEach((button) => button.addEventListener('click', () => closeModal(button.closest('.modal-backdrop'))));
+    document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.addEventListener('click', (event) => {
+      if (event.target === backdrop) closeModal(backdrop);
+    }));
+
+    async function submitProjectForm(event, endpoint) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const status = form.querySelector('[data-status]');
+      const submitButton = form.querySelector('button[type="submit"]');
+      const data = Object.fromEntries(new FormData(form).entries());
+      data.userEmail = currentUserEmail();
+      status.textContent = 'Sending...';
+      submitButton.disabled = true;
+      try {
+        const baseUrl = window.APP_API_BASE_URL || '';
+        const response = await fetch(`${baseUrl}${endpoint}`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(data)
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || 'Could not save your submission.');
+        status.textContent = 'Thank you — your submission was saved.';
+        status.className = 'modal-status success';
+        form.reset();
+        form.querySelector('[name="email"]').value = currentUserEmail();
+      } catch (error) {
+        status.textContent = `Could not submit: ${error.message}. Start the Python web server with "python main.py --web" if it is not running.`;
+        status.className = 'modal-status error';
+      } finally {
+        submitButton.disabled = false;
+      }
+    }
+
+    document.querySelector('[data-form="feedback"]').addEventListener('submit', (event) => submitProjectForm(event, '/api/feedback'));
+    document.querySelector('[data-form="contribute"]').addEventListener('submit', (event) => submitProjectForm(event, '/api/contribute'));
+
+
     toggle.onclick = () => {
       isLogin = !isLogin;
       title.innerText = isLogin ? 'Login' : 'Sign Up';
       btn.innerText = isLogin ? 'Login' : 'Sign Up';
+      resetBtn.style.display = isLogin ? 'block' : 'none';
       toggle.innerText = isLogin ? 'Need an account? Sign up' : 'Have an account? Login';
-      msg.innerText = '';
+      passwordInput.autocomplete = isLogin ? 'current-password' : 'new-password';
+      showMessage('');
     };
 
-    // Handle Login or Sign Up
+    resetBtn.onclick = async () => {
+      const email = getEmail();
+      showMessage('');
+
+      if (!email) {
+        showMessage('Enter your email address first.');
+        emailInput.focus();
+        return;
+      }
+
+      resetBtn.disabled = true;
+      try {
+        await sendPasswordResetEmail(auth, email);
+        showMessage('Password reset email sent. Check your inbox and spam folder, then log in with the new password.', true);
+      } catch (error) {
+        showMessage(friendlyAuthError(error));
+      } finally {
+        resetBtn.disabled = false;
+      }
+    };
+
     btn.onclick = async () => {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      msg.innerText = '';
+      const email = getEmail();
+      const password = passwordInput.value;
+      showMessage('');
 
       if (!email || !password) {
-        msg.innerText = 'Please enter both email and password.';
+        showMessage('Please enter both email and password.');
         return;
       }
       if (password.length < 6) {
-        msg.innerText = 'Password must be at least 6 characters.';
+        showMessage('Password must be at least 6 characters.');
         return;
       }
 
@@ -86,16 +283,8 @@
         } else {
           await createUserWithEmailAndPassword(auth, email, password);
         }
-        // onAuthStateChanged will redirect
       } catch (error) {
-        const code = error?.code || '';
-        const messages = {
-          'auth/invalid-credential': 'Invalid email or password.',
-          'auth/email-already-in-use': 'An account with this email already exists.',
-          'auth/invalid-email': 'Please enter a valid email address.',
-          'auth/weak-password': 'Password must be at least 6 characters.'
-        };
-        msg.innerText = messages[code] || error.message.replace('Firebase: ', '');
+        showMessage(friendlyAuthError(error));
       } finally {
         btn.disabled = false;
       }

@@ -1,0 +1,7 @@
+# User-submitted feedback is runtime data and may contain personal information.
+*.txt
+*.log
+*.tmp
+
+# Keep this directory present in a fresh clone.
+!.gitkeep

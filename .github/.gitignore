@@ -1,0 +1,5 @@
+# Local GitHub tooling / editor files only.
+# Workflow YAML files must remain tracked.
+*.log
+.DS_Store
+Thumbs.db

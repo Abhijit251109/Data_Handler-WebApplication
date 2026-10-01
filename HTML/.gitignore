@@ -1,0 +1,29 @@
+# Frontend tooling caches / dependencies
+node_modules/
+.npm/
+.pnpm-store/
+.cache/
+.parcel-cache/
+.vite/
+dist/
+build/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Local browser/test artifacts
+*.log
+coverage/
+playwright-report/
+test-results/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# IMPORTANT: app-config.js is intentionally tracked.
+# It contains public frontend configuration, not server secrets.

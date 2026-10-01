@@ -1,0 +1,6 @@
+# Keep workflow YAML files tracked.
+# Ignore only local/editor noise that may appear beside workflows.
+*.log
+.DS_Store
+Thumbs.db
+*.tmp
