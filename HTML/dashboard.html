@@ -3,42 +3,99 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="theme.js"></script>
   <title>Dashboard - User Data Handler</title>
   <style>
-    body{font-family:Arial,sans-serif;max-width:1000px;margin:0 auto;padding:24px;background:#f5f7fb;color:#202124}
-    .top,.card{background:#fff;border-radius:12px;padding:20px;margin-bottom:18px;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+    :root {
+      color-scheme: light;
+      --page-bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-hover: #f7f9fc;
+      --text: #202124;
+      --muted: #5f6368;
+      --border: #d0d4da;
+      --table-head: #f8f9fa;
+      --table-border: #eee;
+      --primary: #4285f4;
+      --primary-hover: #357ae8;
+      --secondary: #5f6368;
+      --secondary-hover: #4f5357;
+      --danger: #b3261e;
+      --success: #137333;
+      --shadow: rgba(0,0,0,.08);
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --page-bg: #111827;
+      --surface: #1f2937;
+      --surface-hover: #273449;
+      --text: #f3f4f6;
+      --muted: #c5cad3;
+      --border: #4b5563;
+      --table-head: #273449;
+      --table-border: #374151;
+      --primary: #78a9ff;
+      --primary-hover: #9cc0ff;
+      --secondary: #6b7280;
+      --secondary-hover: #7c8491;
+      --danger: #ff8a80;
+      --success: #7ee2a8;
+      --shadow: rgba(0,0,0,.35);
+    }
+
+    * { box-sizing: border-box; }
+    body{font-family:Arial,sans-serif;max-width:1000px;margin:0 auto;padding:24px;background:var(--page-bg);color:var(--text);transition:background-color .2s ease,color .2s ease}
+    .top,.card{background:var(--surface);border:1px solid transparent;border-radius:12px;padding:20px;margin-bottom:18px;box-shadow:0 2px 12px var(--shadow);transition:background-color .2s ease,box-shadow .2s ease}
     .top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
     label{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
-    input{width:100%;box-sizing:border-box;padding:10px;border:1px solid #d0d4da;border-radius:7px}
-    button{border:0;border-radius:7px;padding:10px 16px;cursor:pointer;background:#4285f4;color:#fff}
-    button.secondary{background:#5f6368}.actions{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
-    table{width:100%;border-collapse:collapse;margin-top:14px}th,td{text-align:left;padding:10px;border-bottom:1px solid #eee}th{background:#f8f9fa}
-    #msg{min-height:20px}.error{color:#b3261e}.success{color:#137333}.muted{color:#5f6368}
-    .link-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
-    .contact-link{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:7px;background:#f1f3f4;color:#1a73e8;text-decoration:none;font-size:13px;font-weight:600}
-    .contact-link:hover{background:#e8eaed;text-decoration:none}
-    .utility-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:18px}
-    .utility-btn{border:0;border-radius:7px;padding:10px 14px;cursor:pointer;background:#f1f3f4;color:#174ea6;font-weight:600}
-    .utility-btn:hover{background:#e8eaed}
-    .modal-backdrop{position:fixed;inset:0;background:rgba(32,33,36,.55);display:none;align-items:center;justify-content:center;padding:18px;z-index:20}
-    .modal-backdrop.open{display:flex}
-    .modal{background:#fff;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.25);width:min(560px,100%);padding:22px;max-height:90vh;overflow:auto}
-    .modal h3{margin:0 0 8px}.modal p{color:#5f6368;font-size:13px;line-height:1.45}
-    .modal label{display:block;margin:12px 0 5px;font-size:13px;font-weight:600}
-    .modal input,.modal textarea,.modal select{width:100%;box-sizing:border-box;padding:10px;border:1px solid #d0d4da;border-radius:7px;font:inherit}
-    .modal textarea{min-height:130px;resize:vertical}
-    .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
-    .modal-actions button{padding:10px 15px}.modal .cancel{background:#5f6368}
-    .modal-status{min-height:18px;font-size:13px;margin-top:8px}
-    .file-toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:8px}
-    .file-toolbar input{max-width:420px}
-    .file-actions{display:flex;gap:6px;flex-wrap:wrap}
-    .file-actions a,.file-actions button{font-size:12px;padding:7px 10px;text-decoration:none}
-    .file-meta{color:#5f6368;font-size:12px}
-    .drop-zone{border:2px dashed #c7ccd1;border-radius:10px;padding:18px;text-align:center;margin-top:12px;background:#fafbfc}
-    .drop-zone small{display:block;color:#5f6368;margin-top:6px}
+    input{width:100%;padding:10px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);outline:none}
+    input::placeholder{color:var(--muted)}
+    input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(66,133,244,.15)}
+    button{border:0;border-radius:7px;padding:10px 16px;cursor:pointer;background:var(--primary);color:#fff}
+    button:hover{background:var(--primary-hover)}
+    button:disabled{opacity:.65;cursor:not-allowed}
+    button.secondary{background:var(--secondary)}
+    button.secondary:hover{background:var(--secondary-hover)}
+    .actions{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+    table{width:100%;border-collapse:collapse;margin-top:14px;overflow:hidden}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--table-border)}th{background:var(--table-head)}
+    #msg{min-height:20px}.error{color:var(--danger)}.success{color:var(--success)}.muted{color:var(--muted)}
 
+    .theme-switcher {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 1000;
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      box-shadow: 0 4px 18px var(--shadow);
+    }
+    .theme-switcher button {
+      width: auto;
+      margin: 0;
+      padding: 7px 10px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .theme-switcher button:hover, .theme-switcher button.active {
+      background: var(--surface-hover);
+      color: var(--text);
+    }
+    @media (max-width: 640px) {
+      body { padding: 76px 12px 18px; }
+      .top,.card { padding: 16px; }
+      .theme-switcher { left: 50%; right: auto; transform: translateX(-50%); }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
   </style>
 </head>
 <body>
@@ -46,55 +103,6 @@
     <div><h1>User Data Handler</h1><p>Logged in as: <strong id="user-email"></strong></p></div>
     <button id="logout" class="secondary" type="button">Logout</button>
   </section>
-  <div class="utility-actions" aria-label="Project links">
-    <button type="button" class="utility-btn" data-open-feedback>💬 Feedback</button>
-    <button type="button" class="utility-btn" data-open-contribute>🤝 Contribute</button>
-  </div>
-  <div class="link-row">
-    <a class="contact-link" href="https://github.com/Abhijit251109/Data_Handler-WebApplication" target="_blank" rel="noopener noreferrer">GitHub</a>
-    <a class="contact-link" href="mailto:abhijitschool036@gmail.com">Email</a>
-  </div>
-
-  <div class="modal-backdrop" id="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedback-title">
-    <div class="modal">
-      <h3 id="feedback-title">Send feedback</h3>
-      <p>Your feedback is stored by the app in <code>./feedback/feedback.txt</code>.</p>
-      <form data-form="feedback">
-        <label for="feedback-name">Name (optional)</label>
-        <input id="feedback-name" name="name" maxlength="120" autocomplete="name" placeholder="Your name">
-        <label for="feedback-email">Email (optional)</label>
-        <input id="feedback-email" name="email" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com">
-        <label for="feedback-message">Feedback</label>
-        <textarea id="feedback-message" name="message" maxlength="5000" required placeholder="Tell us what you think..."></textarea>
-        <div class="modal-status" data-status></div>
-        <div class="modal-actions"><button type="button" class="cancel" data-close-modal>Cancel</button><button type="submit">Send feedback</button></div>
-      </form>
-    </div>
-  </div>
-
-  <div class="modal-backdrop" id="contribute-modal" role="dialog" aria-modal="true" aria-labelledby="contribute-title">
-    <div class="modal">
-      <h3 id="contribute-title">Contribute to the project</h3>
-      <p>Contribution requests are stored in <code>./contribute/contributions.json</code> for review.</p>
-      <form data-form="contribute">
-        <label for="contribute-name">Name (optional)</label>
-        <input id="contribute-name" name="name" maxlength="120" autocomplete="name" placeholder="Your name">
-        <label for="contribute-email">Email (optional)</label>
-        <input id="contribute-email" name="email" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com">
-        <label for="contribute-github">GitHub profile/repository (optional)</label>
-        <input id="contribute-github" name="github" maxlength="500" placeholder="https://github.com/your-name">
-        <label for="contribute-type">Contribution type</label>
-        <select id="contribute-type" name="type">
-          <option>Code</option><option>Documentation</option><option>Testing / Bug report</option><option>UI / Design</option><option>Idea / Feature</option><option>Other</option>
-        </select>
-        <label for="contribute-message">What would you like to contribute?</label>
-        <textarea id="contribute-message" name="message" maxlength="5000" required placeholder="Describe your contribution..."></textarea>
-        <div class="modal-status" data-status></div>
-        <div class="modal-actions"><button type="button" class="cancel" data-close-modal>Cancel</button><button type="submit">Submit contribution</button></div>
-      </form>
-    </div>
-  </div>
-
 
   <section class="card">
     <h2>Add employee</h2>
@@ -111,34 +119,15 @@
   </section>
 
   <section class="card">
-    <h2>Saved files</h2>
-    <p class="muted">Files saved here are tied to your Firebase account and stored in Supabase Storage, so they can be found again after logging in from another device.</p>
-    <form id="file-upload-form">
-      <div class="drop-zone">
-        <input id="file-input" type="file" multiple required>
-        <small>Maximum 25 MB per file. Your saved files stay associated with this account.</small>
-      </div>
-      <div class="actions"><button id="upload-files-btn" type="submit">Save selected files</button><button id="refresh-files-btn" type="button" class="secondary">Refresh saved files</button></div>
-    </form>
-    <div id="files-msg" class="muted" role="status" aria-live="polite"></div>
-    <div class="file-toolbar">
-      <input id="file-search" type="search" placeholder="Search your saved files..." aria-label="Search saved files">
-      <span class="file-meta" id="file-count">0 files</span>
-    </div>
-    <div id="saved-files" style="margin-top:12px">Loading saved files...</div>
-  </section>
-
-  <section class="card">
     <h2>Employee records</h2>
     <p class="muted">Records are stored in Firebase Firestore and are restricted to authenticated users by the recommended security rules.</p>
     <div id="records">Loading...</div>
   </section>
 
-  <script src="app-config.js"></script>
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAqMTkqnv7PbgMLFC1Dsr6xUC5F4Q5_cwk",
@@ -156,174 +145,25 @@
     const msg = document.getElementById('msg');
     const records = document.getElementById('records');
     let unsubscribeRecords = null;
-    let savedFiles = [];
 
     const showMessage = (text, ok=false) => {
       msg.textContent = text;
       msg.className = ok ? 'success' : 'error';
     };
 
-    const apiBase = () => window.APP_API_BASE_URL || '';
-
-    function formatFileSize(bytes) {
-      if (!Number.isFinite(Number(bytes))) return 'Size unknown';
-      const value = Number(bytes);
-      if (value < 1024) return `${value} B`;
-      if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
-      if (value < 1024 * 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} MB`;
-      return `${(value / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-    }
-
-    function formatDate(value) {
-      if (!value) return 'Unknown date';
-      const date = new Date(value);
-      return Number.isNaN(date.getTime()) ? 'Unknown date' : date.toLocaleString();
-    }
-
-    function setFilesMessage(text, ok = false) {
-      const el = document.getElementById('files-msg');
-      el.textContent = text;
-      el.className = ok ? 'success' : 'muted';
-    }
-
-    function renderSavedFiles() {
-      const root = document.getElementById('saved-files');
-      const search = document.getElementById('file-search').value.trim().toLowerCase();
-      const visible = savedFiles.filter(file => (file.name || '').toLowerCase().includes(search));
-      document.getElementById('file-count').textContent = `${visible.length} ${visible.length === 1 ? 'file' : 'files'}`;
-      if (!visible.length) {
-        root.innerHTML = '<p class="muted">No saved files match your search.</p>';
-        return;
-      }
-      const table = document.createElement('table');
-      table.innerHTML = '<thead><tr><th>File</th><th>Size</th><th>Saved</th><th>Action</th></tr></thead>';
-      const tbody = document.createElement('tbody');
-      visible.forEach(file => {
-        const row = document.createElement('tr');
-        const nameCell = document.createElement('td');
-        const strong = document.createElement('strong');
-        strong.textContent = file.name || 'Unnamed file';
-        nameCell.appendChild(strong);
-        const type = document.createElement('div');
-        type.className = 'file-meta';
-        type.textContent = file.contentType || 'Unknown type';
-        nameCell.appendChild(type);
-        const sizeCell = document.createElement('td'); sizeCell.textContent = formatFileSize(file.size);
-        const dateCell = document.createElement('td'); dateCell.textContent = formatDate(file.createdAt || file.updatedAt);
-        const actionCell = document.createElement('td');
-        const actions = document.createElement('div'); actions.className = 'file-actions';
-        if (file.downloadUrl) {
-          const open = document.createElement('a');
-          open.href = file.downloadUrl; open.target = '_blank'; open.rel = 'noopener noreferrer'; open.textContent = 'Open / download';
-          open.className = 'contact-link'; actions.appendChild(open);
-        }
-        const del = document.createElement('button'); del.type = 'button'; del.className = 'secondary'; del.textContent = 'Delete';
-        del.onclick = () => deleteSavedFile(file);
-        actions.appendChild(del); actionCell.appendChild(actions);
-        row.append(nameCell, sizeCell, dateCell, actionCell); tbody.appendChild(row);
-      });
-      table.appendChild(tbody); root.replaceChildren(table);
-    }
-
-    async function loadSavedFiles(user) {
-      const root = document.getElementById('saved-files');
-      root.textContent = 'Loading saved files...';
-      try {
-        const token = await user.getIdToken();
-        const response = await fetch(`${apiBase()}/api/files`, { headers: { Authorization: `Bearer ${token}` } });
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(result.error || 'Could not load saved files.');
-        savedFiles = Array.isArray(result.files) ? result.files : [];
-        renderSavedFiles();
-        setFilesMessage(savedFiles.length ? 'Your saved files are available on this account.' : 'No saved files yet.', true);
-      } catch (error) {
-        savedFiles = [];
-        root.innerHTML = '<p class="muted">Saved files could not be loaded.</p>';
-        setFilesMessage(`Could not load saved files: ${error.message}`);
-      }
-    }
-
-    async function deleteSavedFile(file) {
-      if (!confirm(`Delete "${file.name}" from your saved files?`)) return;
-      const user = auth.currentUser;
-      if (!user) return;
-      try {
-        const token = await user.getIdToken();
-        const response = await fetch(`${apiBase()}/api/files`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ path: file.path })
-        });
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(result.error || 'Could not delete file.');
-        savedFiles = savedFiles.filter(item => item.path !== file.path);
-        renderSavedFiles();
-        setFilesMessage('File deleted from your saved files.', true);
-      } catch (error) {
-        setFilesMessage(`Could not delete file: ${error.message}`);
-      }
-    }
-
-    document.getElementById('file-search').addEventListener('input', renderSavedFiles);
-    document.getElementById('refresh-files-btn').addEventListener('click', () => {
-      if (auth.currentUser) loadSavedFiles(auth.currentUser);
-    });
-
-    document.getElementById('file-upload-form').addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const user = auth.currentUser;
-      const input = document.getElementById('file-input');
-      const button = document.getElementById('upload-files-btn');
-      if (!user || !input.files.length) return;
-      button.disabled = true;
-      try {
-        const token = await user.getIdToken();
-        let completed = 0;
-        for (const file of input.files) {
-          const formData = new FormData();
-          formData.append('file', file, file.name);
-          const response = await fetch(`${apiBase()}/api/files`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
-            body: formData
-          });
-          const result = await response.json().catch(() => ({}));
-          if (!response.ok) throw new Error(result.error || `Could not save ${file.name}.`);
-          completed += 1;
-          setFilesMessage(`Saved ${completed} of ${input.files.length} file(s)...`);
-        }
-        input.value = '';
-        await loadSavedFiles(user);
-        setFilesMessage(`${completed} file(s) saved to your account.`, true);
-      } catch (error) {
-        setFilesMessage(`Could not save files: ${error.message}`);
-      } finally {
-        button.disabled = false;
-      }
-    });
-
     onAuthStateChanged(auth, (user) => {
       if (!user) { window.location.href = 'index.html'; return; }
-      window.__currentUserEmail = user.email || '';
       document.getElementById('user-email').textContent = user.email || 'Authenticated user';
-      loadSavedFiles(user);
 
-      // Firestore rules are not filters. The query must include the same owner constraint
-      // used by firestore.rules, otherwise the entire collection read can be rejected.
-      const employeeQuery = query(collection(db, 'employees'), where('ownerUid', '==', user.uid));
+      const employeeQuery = query(collection(db, 'employees'), orderBy('createdAt', 'desc'));
       unsubscribeRecords?.();
       unsubscribeRecords = onSnapshot(employeeQuery, (snapshot) => {
         if (snapshot.empty) { records.innerHTML = '<p class="muted">No employee records yet.</p>'; return; }
-        const items = snapshot.docs.map((item) => ({ item, data: item.data() }));
-        items.sort((a, b) => {
-          const aTime = a.data.createdAt?.toMillis?.() ?? 0;
-          const bTime = b.data.createdAt?.toMillis?.() ?? 0;
-          return bTime - aTime;
-        });
         const table = document.createElement('table');
         table.innerHTML = '<thead><tr><th>Name</th><th>Employee ID</th><th>Department</th><th>Salary</th><th>Action</th></tr></thead>';
         const tbody = document.createElement('tbody');
-        items.forEach(({ item, data }) => {
+        snapshot.forEach((item) => {
+          const data = item.data();
           const tr = document.createElement('tr');
           for (const key of ['name','employee_id','department','salary']) {
             const td = document.createElement('td');
@@ -362,68 +202,6 @@
       } catch (e) { showMessage('Could not save record: ' + e.message); }
       finally { button.disabled = false; }
     });
-
-
-    // Feedback and contribution forms use the bundled Python API. This keeps the
-    // Firebase authentication/Firestore flow separate from local project submissions.
-    const currentUserEmail = () => window.__currentUserEmail || '';
-
-    function openModal(id, formKey) {
-      const modal = document.getElementById(id);
-      modal.classList.add('open');
-      const form = modal.querySelector('form');
-      const status = form.querySelector('[data-status]');
-      status.textContent = '';
-      if (formKey === 'feedback') {
-        form.querySelector('[name="email"]').value = currentUserEmail();
-        form.querySelector('[name="message"]').focus();
-      } else {
-        form.querySelector('[name="email"]').value = currentUserEmail();
-        form.querySelector('[name="message"]').focus();
-      }
-    }
-    function closeModal(modal) { modal.classList.remove('open'); }
-
-    document.querySelectorAll('[data-open-feedback]').forEach((button) => button.addEventListener('click', () => openModal('feedback-modal', 'feedback')));
-    document.querySelectorAll('[data-open-contribute]').forEach((button) => button.addEventListener('click', () => openModal('contribute-modal', 'contribute')));
-    document.querySelectorAll('[data-close-modal]').forEach((button) => button.addEventListener('click', () => closeModal(button.closest('.modal-backdrop'))));
-    document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.addEventListener('click', (event) => {
-      if (event.target === backdrop) closeModal(backdrop);
-    }));
-
-    async function submitProjectForm(event, endpoint) {
-      event.preventDefault();
-      const form = event.currentTarget;
-      const status = form.querySelector('[data-status]');
-      const submitButton = form.querySelector('button[type="submit"]');
-      const data = Object.fromEntries(new FormData(form).entries());
-      data.userEmail = currentUserEmail();
-      status.textContent = 'Sending...';
-      submitButton.disabled = true;
-      try {
-        const baseUrl = window.APP_API_BASE_URL || '';
-        const response = await fetch(`${baseUrl}${endpoint}`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(data)
-        });
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(result.error || 'Could not save your submission.');
-        status.textContent = 'Thank you — your submission was saved.';
-        status.className = 'modal-status success';
-        form.reset();
-        form.querySelector('[name="email"]').value = currentUserEmail();
-      } catch (error) {
-        status.textContent = `Could not submit: ${error.message}. Start the Python web server with "python main.py --web" if it is not running.`;
-        status.className = 'modal-status error';
-      } finally {
-        submitButton.disabled = false;
-      }
-    }
-
-    document.querySelector('[data-form="feedback"]').addEventListener('submit', (event) => submitProjectForm(event, '/api/feedback'));
-    document.querySelector('[data-form="contribute"]').addEventListener('submit', (event) => submitProjectForm(event, '/api/contribute'));
-
 
     document.getElementById('logout').onclick = async () => {
       try { await signOut(auth); } catch (e) { showMessage(e.message); }

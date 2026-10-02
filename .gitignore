@@ -1,45 +1,9 @@
-# Python virtual environments
 .venv/
-venv/
-env/
-
-# Python cache / bytecode
 __pycache__/
-*.py[cod]
-*$py.class
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-htmlcov/
+*pyc
+HTML/config.js
 
-# Local configuration and secrets
-.env
-.env.*
-!.env.example
-
-# Local runtime / logs
-*.log
-*.tmp
-*.swp
-*.swo
-
-# Local employee records / user data
+# Local employee records (may contain personal data)
 employees.txt
-
-# User-submitted data (keep directories via .gitkeep, ignore generated contents)
-feedback/feedback.txt
-contribute/contributions.json
-
-# Generated/local files
-.DS_Store
-Thumbs.db
-.idea/
-.vscode/
-
-# Node tooling if frontend tooling is added later
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
+# Local employee records
+employees.txt
