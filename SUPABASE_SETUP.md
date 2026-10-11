@@ -20,7 +20,10 @@ This makes the file library account-specific.
 
 ## 2. Configure the Python backend
 
-Set these variables on the backend (for example, Render Environment Variables):
+The backend loads `.env` from the repository root for local development. Keep
+your existing `.env` and confirm it has the values below; for a fresh checkout,
+copy `.env.example` to `.env` first. `.env` is ignored by Git. For deployment,
+set the same variables in the backend host's environment settings.
 
 ```text
 SUPABASE_URL=https://kyivphipxjuiyukvakez.supabase.co
@@ -32,7 +35,8 @@ FIREBASE_WEB_API_KEY=YOUR_FIREBASE_WEB_API_KEY
 CORS_ALLOW_ORIGIN=https://YOUR-FRONTEND-DOMAIN
 ```
 
-`SUPABASE_SERVICE_ROLE_KEY` must stay on the server. Do not add it to `HTML/app-config.js` or any frontend JavaScript. The key you supplied should be entered only as the backend/Render environment variable `SUPABASE_SERVICE_ROLE_KEY`.
+`SUPABASE_SERVICE_ROLE_KEY` must stay on the server. Do not add it to
+`HTML/app-config.js` or any frontend JavaScript.
 
 The frontend may contain `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in `HTML/app-config.js`. These are public configuration values. They are not a replacement for the backend service-role key used by the current Storage API.
 
@@ -56,10 +60,24 @@ When the frontend and Python API are deployed on the same origin, it can remain 
 ## 4. Start locally
 
 ```bash
-python main.py --web
+pip install -r requirements.txt
+python backend.py
 ```
 
-Then open the dashboard and sign in.
+In a second terminal, serve the static frontend:
+
+```bash
+python -m http.server 5500 --directory HTML
+```
+
+For this local setup, set `CORS_ALLOW_ORIGIN=http://localhost:5500` in `.env`
+and set `window.APP_API_BASE_URL = 'http://localhost:8000';` in
+`HTML/app-config.js`. Open `http://localhost:5500` and sign in.
+
+For a deployed frontend, set `CORS_ALLOW_ORIGIN` to its exact origin (scheme
+and domain, without a path), and set `window.APP_API_BASE_URL` in
+`HTML/app-config.js` to the deployed backend URL. Static hosting cannot read
+the server's `.env`; only the public backend URL belongs in frontend config.
 
 ## 5. What happens when a user uploads a file
 
@@ -72,13 +90,15 @@ When the dashboard is opened again, `GET /api/files` lists that user's objects a
 ## 6. File endpoints
 
 ```text
-GET    /api/files      List the current user's saved files
-POST   /api/files      Upload a file for the current user
-DELETE /api/files      Delete one of the current user's files
-GET    /api/health     Backend health/configuration check
+GET    /api/files      List the current user's saved files and signed URLs
+POST   /api/files      Upload a multipart form file field named "file"
+DELETE /api/files      Delete JSON {"path":"<returned file path>"}
+GET    /api/health     Backend health check
 ```
 
-No browser local storage is used as the source of truth for saved files.
+All file routes except health require a Firebase ID token in the
+`Authorization: Bearer <token>` header. No browser local storage is used as the
+source of truth for saved files.
 
 ## Production persistence note
 

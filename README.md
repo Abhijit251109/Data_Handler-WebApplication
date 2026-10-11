@@ -24,6 +24,15 @@ python main.py
 
 The CLI validates required fields and appends records to `employees.txt`.
 
+## Saved files API
+
+The dashboard's Saved files section uses the Python API and private Supabase
+Storage. Make sure the local `.env` has the server credentials, then follow
+[SUPABASE_SETUP.md](./SUPABASE_SETUP.md) to install dependencies, start the API,
+and configure its frontend URL and allowed origin. Keep
+`SUPABASE_SERVICE_ROLE_KEY` in the backend environment only; never add it to
+frontend JavaScript.
+
 ## Data safety
 
 `employees.txt` is ignored by Git. Do not commit employee or other personal data to the repository. Firebase web API keys are not passwords, but Firestore security rules and Authentication configuration must be set correctly.

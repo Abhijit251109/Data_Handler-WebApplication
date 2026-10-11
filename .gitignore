@@ -2,7 +2,7 @@
 __pycache__/
 *pyc
 HTML/config.js
-
+.env
 # Local employee records (may contain personal data)
 employees.txt
 # Local employee records
