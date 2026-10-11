@@ -504,7 +504,10 @@
       const button = document.getElementById('save-btn'); button.disabled = true;
       try {
         await addDoc(collection(db, 'employees'), { ...data, ownerUid: user.uid, createdAt: serverTimestamp() });
-        form.reset(); showMessage('Employee saved successfully.', true);
+        form.reset();
+        form.querySelectorAll('input').forEach((input) => { input.value = ''; });
+        document.getElementById('name').focus();
+        showMessage('Employee saved successfully. Ready for the next entry.', true);
       } catch (e) { showMessage('Could not save record: ' + e.message); }
       finally { button.disabled = false; }
     });
