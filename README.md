@@ -12,6 +12,8 @@ With Firebase CLI:
 firebase deploy --only firestore:rules
 ```
 
+
+
 Then host the `HTML/` directory with GitHub Pages or another static host and add that host domain to Firebase Authentication's authorized domains.
 
 ## Python CLI
